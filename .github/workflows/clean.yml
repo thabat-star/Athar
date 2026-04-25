@@ -1,0 +1,33 @@
+name: Athar Database Cleaner
+on:
+  schedule:
+    - cron: '0 0 */5 * *' # يشتغل كل 5 أيام
+  workflow_dispatch: # زرار للتشغيل اليدوي
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Cleaner Script
+        run: python clean_videos.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'Athar Cleaner'
+          git config --global user.email 'cleaner@athar.app'
+          git add videos.json
+          git commit -m "Auto-clean: Removed dead video links" || echo "No dead links found"
+          git push

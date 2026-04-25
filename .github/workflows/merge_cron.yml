@@ -1,0 +1,35 @@
+name: Athar Database Merger
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch: 
+
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Run Merge Script
+        run: python merge_queue.py
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'Athar Merger'
+          git config --global user.email 'merger@athar.app'
+          git add videos.json
+          
+          # السطر ده هو اللي كان بيعمل المشكلة.. التعديل كدة:
+          git rm -rf queue/*.json || true 
+          
+          # وده كمان بنأمنه عشان لو مفيش فيديوهات جديدة الأكشن ميفشلش
+          git commit -m "Merge queue and update videos.json" || echo "No changes to commit"
+          
+          git push

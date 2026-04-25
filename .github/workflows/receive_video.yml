@@ -1,0 +1,59 @@
+name: Athar Video & Like Receiver
+on:
+  repository_dispatch:
+    types: [new_video_upload, update_like]
+
+permissions:
+  contents: write
+
+jobs:
+  receive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Create Temp Entry
+        env:
+          VIDEO_TITLE: ${{ github.event.client_payload.video_title }}
+          FILE_ID: ${{ github.event.client_payload.file_id }}
+          EVENT_TYPE: ${{ github.event.action }}
+        run: |
+          mkdir -p queue
+          TIMESTAMP=$(date +%s)
+          
+          if [ "$EVENT_TYPE" == "new_video_upload" ]; then
+            # نستخدم jq لبناء الـ JSON بأمان كامل بعيداً عن مشاكل الـ Shell
+            jq -n \
+              --arg id "$FILE_ID" \
+              --arg title "$VIDEO_TITLE" \
+              --argjson time "$TIMESTAMP" \
+              '{file_id: $id, video_title: $title, timestamp: $time}' > "queue/vid_${FILE_ID}.json"
+            
+            echo "🚀 تم تسجيل فيديو جديد في الطابور بنجاح"
+            
+          elif [ "$EVENT_TYPE" == "update_like" ]; then
+            VIDEO_ID="${{ github.event.client_payload.video_id }}"
+            ACTION="${{ github.event.client_payload.action }}"
+            
+            jq -n \
+              --arg vid "$VIDEO_ID" \
+              --arg act "$ACTION" \
+              --argjson time "$TIMESTAMP" \
+              '{video_id: $vid, action: $act, timestamp: $time}' > "queue/like_${VIDEO_ID}_$RANDOM.json"
+              
+            echo "❤️ تم تسجيل طلب لايك في الطابور"
+          fi
+
+      - name: Commit & Push to Queue
+        run: |
+          git config --global user.name 'Athar Receiver'
+          git config --global user.email 'bot@athar.com'
+          git add queue/
+          git commit -m "New entry in queue: ${{ github.event.action }}" || exit 0
+          
+          # محاولة الرفع مع التكرار لضمان النجاح في حالة الزحمة
+          for i in {1..5}; do
+            git pull --rebase origin main && git push && break || sleep 5
+          done
