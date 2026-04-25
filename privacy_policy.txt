@@ -1,0 +1,1 @@
+Athar app does not collect any personal user data. We only use device IDs to manage likes and leaderboard locally. No data is shared with third parties
