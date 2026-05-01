@@ -64,7 +64,7 @@ def merge_all():
     
     for entry in new_video_entries:
         f_id = entry.get('file_id')
-        url = f"https://yellow-wind-75bb.ahhaga123456789.workers.dev/?file_id={f_id}"
+        url = f"https://athar.platform-thabat.workers.dev/?file_id={f_id}"
         
         # حساب الـ ID الجديد
         try:
