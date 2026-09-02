@@ -1,11 +1,11 @@
 import json
 import os
-import random # ضفنا دي عشان نختار جملة عشوائية
+import random    
 
 def merge_all():
     main_file = 'videos.json'
     queue_dir = 'queue'
-    captions_file = 'captions.json' # ملف العناوين البديلة
+    captions_file = 'captions.json'
     
     # التأكد من وجود المجلد
     if not os.path.exists(queue_dir) or not os.listdir(queue_dir):
